@@ -3,20 +3,29 @@
 var mapdata = null;
 var tree = null;
 
-function distance(a, b) {
-    var lat1 = a.latitude,
-        lon1 = a.longitude,
-        lat2 = b.latitude,
-        lon2 = b.longitude;
+var EARTH_RADIUS = 6371.0e3;
+
+function latlonToPoint(p) {
     var rad = Math.PI/180;
-    var dLat = (lat2-lat1)*rad;
-    var dLon = (lon2-lon1)*rad;
-    var lat1 = lat1*rad;
-    var lat2 = lat2*rad;
-    var x = Math.sin(dLat/2);
-    var y = Math.sin(dLon/2);
-    var a = x*x + y*y * Math.cos(lat1) * Math.cos(lat2); 
-    return Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var latr = p.latitude*rad;
+    var lonr = p.longitude*rad;
+    var x = EARTH_RADIUS*Math.cos(latr)*Math.cos(lonr),
+        y = EARTH_RADIUS*Math.cos(latr)*Math.sin(lonr),
+        z = EARTH_RADIUS*Math.sin(latr);
+
+    return {x,y,z};
+}
+
+function distance2(a,b) {
+    var x1 = a.x,
+        x2 = b.x,
+        y1 = a.y,
+        y2 = b.y,
+        z1 = a.z,
+        z2 = b.z;
+
+    return Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2) + Math.pow(z2-z1,2));
+
 }
 
 function buildMap(error, map) {
@@ -42,10 +51,10 @@ function buildMap(error, map) {
     
     mapdata = map;
     
-    var p = map[2];
+    var p = map[300];
 
-    tree = new kdTree(mapdata, distance, ["latitude", "longitude"]);
-    console.log(tree.nearest([p.latitude, p.longitude], 5));
+    tree = new kdTree(mapdata, distance2, ["x", "y", "z"]);
+    console.log(tree.nearest(latlonToPoint(p), 1)[0]);
     console.log(p);
 }
 
