@@ -34,6 +34,8 @@ gpx_to_df(xml.file) %>%
          x=R*cos(latr)*cos(lonr),
          y=R*cos(latr)*sin(lonr),
          z=R*sin(latr),
+         xf=(R-ele)*cos(latr)*cos(lonr),
+         yf=(R-ele)*cos(latr)*sin(lonr),
          distkm=get_distances(x,y,z)/1e3) %>%  
   mutate(distkm.total=cumsum(distkm), 
          pct=distkm.total/last(distkm.total),
@@ -49,6 +51,8 @@ map.data %>%
   select(latitude=lat, 
          longitude=lon, 
          elevation=ele, 
+         x,y,z, 
+         xf,yf,
          distkm, 
          distkmTotal=distkm.total, 
          distkmTotalFixed=distkm.total.fixed, 
