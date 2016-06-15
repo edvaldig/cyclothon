@@ -8,7 +8,7 @@ var EARTH_RADIUS = 6371.0e3;
 
 var markers = [
     {name:"Akureyri", latitude:65.700359, longitude:-18.141921 }
-] 
+]; 
 
 
 
@@ -41,19 +41,18 @@ function interpolateElement(p1, p2, f, t) {
 
 function interpolateMapPoints(p1, p2, t) {
     return {
-        p1, 
-        p2, 
+        debug:{p1,p2,t},
         distkmTotal:interpolateElement(p1, p2, x=>x.distkmTotal, t),
         distkmTotalFixed:interpolateElement(p1, p2, x=>x.distkmTotalFixed, t),
         pct:interpolateElement(p1, p2, x=>x.pct, t), 
         elevation:interpolateElement(p1, p2, x=>x.elevation, t),
         longitude: interpolateElement(p1, p2, x=>x.longitude, t),
         latitude: interpolateElement(p1, p2, x=>x.latitude, t)    
-    }
+    };
 }
 
 function parseMapData(map) {
-   for(var i = 0; i<map.length; i++) {
+    for(var i = 0; i<map.length; i++) {
         var d = map[i];
         d.idx = parseInt(d.idx);
         d.distkm = parseFloat(d.distkm);
@@ -88,7 +87,6 @@ function parseTeamData(teams) {
             categoryName:t.CategoryName,
             longitude:lon,
             latitude:lat,
-            cartesian:cart,
             x:cart.x,
             y:cart.y,
             z:cart.z,
@@ -99,41 +97,42 @@ function parseTeamData(teams) {
 
 function approximatePosition(p, tree) {
     var n, dn;
-    var x = 'x' in p ? p : latlonToPoint(p);
-    [n,dn] = tree.nearest(x, 1)[0];
-    var dnn = n.next == null ? 1e9 : distance(x, n.next);
-    var dnp = n.prev == null ? 1e9 : distance(x, n.prev);
+    [n,dn] = tree.nearest(p, 1)[0];
+    var dnn = n.next == null ? 1e9 : distance(p, n.next);
+    var dnp = n.prev == null ? 1e9 : distance(p, n.prev);
     // console.log(`distance to closest: ${dn} meters`);
     // console.log(`distance to next: ${dnn} meters`);
     // console.log(`distance to previous: ${dnp} meters`);
 
     if(dnn < dnp) { // we're past n
         var t = dn / (dn + dnn);   
-        return approx = interpolateMapPoints(n.next, n, t);
-    } else { // we havent reached n 
-        var t = dn / (dn + dnp);
-        return approx = interpolateMapPoints(n.prev, n, t);
-    } 
+        return interpolateMapPoints(n.next, n, t);
+    }    
+    
+    var t = dn / (dn + dnp);
+    return interpolateMapPoints(n.prev, n, t);
+ 
 
 }
 
 function buildMap(error, map, teams) {
     mapdata = parseMapData(map);
     teamdata = parseTeamData(teams);
-    var p = teamdata[90];
-
-    tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
     
-    var approx = approximatePosition(p, tree);
+    tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
 
     markers.forEach(x=>{
-        x.routePoint = approximatePosition(x, tree);
+        x.approx = approximatePosition(x, tree);
     });
 
 
     teamdata.forEach(t=>{
         t.approx = approximatePosition(t, tree);
+
+        t.pct = t.approx.pct;
     });
+
+    teamdata = teamdata.sort((x,y)=>y.pct-x.pct);
 }
 
 

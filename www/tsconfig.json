@@ -1,0 +1,12 @@
+{ 
+    "compilerOptions": {
+        "target": "es6",
+        "module": "none",
+        "outDir": "./"
+    },
+    "compileOnSave": true,
+    "files": [
+        "ts/adjacency.ts",
+        "typings/index.d.ts"
+    ]
+}
