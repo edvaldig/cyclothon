@@ -1,43 +1,44 @@
 <!DOCTYPE html>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
-<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"   integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="   crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>     
+<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+
 <style>
  body {
      font-family: 'Montserrat', sans-serif;
+     background: #e1f5fe;
  }
-
+ h3 { color: #1a237e;}
  text {
      font-size: 12px;
+ }
+ p.guide {
+     font-style: italic;
+     color: #606060;
+     margin-left:5px;
+ }
+ p.subtitle {
+     margin-left:5px;
+     font-size:20px;
+ }
+
+ .highlight {
+     color: #2e7d32;
+     font-weight: bold;
  }
 </style>
 <body>
 <div class="container">
 <div class="row">
-    <div class="col m3 l3 s8 offset-l2 offset-m2 offset-s0">
-        <div class="card purple lighten-5">
-            <div class="card-content">
-              <span class="card-title truncate" id="teamTitleA" style="color:#4a148c">Pick a team</span>
-              <p>Distance completed: <span id="distanceA">&nbsp;</span> (<span id="pctA">&nbsp;</span>) </p>
-              <p>Distance left: <span id="togoalA">&nbsp;</span> </p>
-            </div>
-        </div>        
-    </div>
-    <div class="col m3 l3 s8">
-        <div class="card  pink lighten-5">
-            <div class="card-content">
-              <span class="card-title truncate" id="teamTitleB" style="color:#f50057">&nbsp;</span>
-              <p>Distance completed: <span id="distanceB">&nbsp;</span> (<span id="pctB">&nbsp;</span>) </p>
-              <p>Distance left: <span id="togoalB">&nbsp;</span> </p>
-            </div>
-        </div>           
-    </div>
+    <h3>WOW Cyclothon 2016</h3>
+    <p class="subtitle">Distance Matrix of Top <span class="highlight">15</span> Teams in <span class="highlight">Group B</span></p>
+    <p class="guide">Manual refresh required, data is updated every 60 seconds, last update was on <span id="time" class="highlight"></span> </p>
 </div>
 <div class="row">
     <div class="col s12">
-        <svg style="width:1000px;height:800px;" id="main" />
+        <svg style="width:1600px;height:800px;" id="main" />
     </div>
 </div>
 </div>

@@ -14,6 +14,8 @@ var markers = [
 declare var queue : any;
 declare var kdTree : any;
 
+var dformat = d3.time.format("%d.%m.%Y %H:%M:%S");
+
 
 function latlonToPoint(p) {
     var rad = Math.PI/180;
@@ -94,6 +96,7 @@ function parseTeamData(teams) {
             y:cart.y,
             z:cart.z,
             nosignal:t.NoSignal, 
+            time:dformat.parse(t.LastTime),
             speed:parseFloat(t.Speed.replace(',', '.')) };
     });
 }
@@ -137,7 +140,7 @@ function buildMap(error, map, teams) {
 
     teamdata = teamdata.filter(x=>x.categoryName == "Group B")
                        .sort((x,y)=>y.pct-x.pct)
-                       .slice(1,15);
+                       .slice(0,15);
 
     var grid = new Array();
     for(var x=0; x<teamdata.length; x++) 
@@ -161,7 +164,8 @@ function buildMap(error, map, teams) {
     var scale = d3.scale.sqrt().range(["dodgerblue","white"]).domain([0,distMax]);
     var percent = d3.format("%"),
         comma = d3.format(".1f");
-    var rectSize = 50;
+    var rectWidth = 75, 
+        rectHeight = 50;
     var rects = d3.select("svg")
         .append("g")
         .attr("transform", "translate(200,0)")
@@ -171,57 +175,57 @@ function buildMap(error, map, teams) {
         .data(grid)
         .enter()
         .append("rect")
-        .attr("width", rectSize)
-        .attr("height", rectSize)
-        .attr("x", d=>{return d.x*rectSize; } )
-        .attr("y", d=>d.y*rectSize)
+        .attr("width", rectWidth)
+        .attr("height", rectHeight)
+        .attr("x", d=>{return d.x*rectWidth; } )
+        .attr("y", d=>d.y*rectHeight)
         .style("stroke", "#202020")
         .style("stroke-width", "1px")
         .style("fill", d=>{
             if(d.x == d.y)
                 return "white";
             
-            return scale(d.distkm);
-        })
-        .on("mouseover", (d,i) => {
-            d3.select("#teamTitleA").html(`${d.xdata.name}`);
-            d3.select("#teamTitleB").html(`${d.ydata.name}`);   
-            d3.select("#distanceA").html(`${Math.round(d.xdata.approx.distkmTotalFixed)}km`);
-            d3.select("#distanceB").html(`${Math.round(d.ydata.approx.distkmTotalFixed)}km`);               
-            d3.select("#pctA").html(`${percent(d.xdata.approx.pct)}`);
-            d3.select("#pctB").html(`${percent(d.ydata.approx.pct)}`);
-    
-            d3.select("#togoalA").html(`${Math.round(d.xdata.approx.distkmTotalFixed/d.xdata.approx.pct - d.xdata.approx.distkmTotalFixed )}km`);
-            d3.select("#togoalB").html(`${Math.round(d.ydata.approx.distkmTotalFixed/d.ydata.approx.pct - d.ydata.approx.distkmTotalFixed )}km`);      
-            rects.selectAll("rect").style("opacity", p=> {
-                return p.x == d.x || p.y == d.y ? 0.5 : 1; 
-            });
+            return scale(Math.abs(d.distkm));
         });
 
     rects.selectAll("text")
         .data(grid)
         .enter()
         .append("text")
-        .attr("x", d=>{return d.x*rectSize + rectSize*0.5; } )
-        .attr("y", d=>d.y*rectSize + rectSize*0.5)        
+        .attr("x", d=>{return (d.x+0.5)*rectWidth; } )
+        .attr("y", d=>(d.y+0.5)*rectHeight)        
         .text(d=>{
-          if(d.x < d.y)
-            return `${comma(d.distkm)}km`;
           if(d.x == d.y)
             return `${percent(d.xdata.approx.pct)}`;
-          return "";
+          return `${comma(d.distkm)}km`;
         })
         .attr("text-anchor", "middle")
         .attr("dy",3);
 
+    rects.selectAll(".diag2")
+        .data(grid.filter(d=>d.x==d.y))
+        .enter()
+        .append("text")
+        .attr("class", "diag2")
+        .attr("x", d=>{return (d.x+0.5)*rectWidth; } )
+        .attr("y", d=>(d.y+0.5)*rectHeight)               
+        .text(d=>`${comma(d.xdata.approx.distkmTotalFixed)}km`) 
+        .attr("text-anchor", "middle")
+        .attr("dy",13)
+        .style("font-weight","bold");
 
-    var scaleSize = teamdata.length*rectSize;
-    var nameScale = d3.scale.ordinal().domain(teamdata.map(x=>x.name)).rangePoints([0,scaleSize],1);
+    var scaleSizeX = teamdata.length*rectWidth;
+    var nameScaleX = d3.scale.ordinal().domain(teamdata.map(x=>x.name)).rangePoints([0,scaleSizeX],1);
+    var scaleSizeY = teamdata.length*rectHeight;
+    var nameScaleY = d3.scale.ordinal().domain(teamdata.map(x=>x.name)).rangePoints([0,scaleSizeY],1);    
 
-    var xAxis = d3.svg.axis().scale(nameScale).orient("top").tickSize(0);    
-    var yAxis = d3.svg.axis().scale(nameScale).orient("left").tickSize(0);    
-    d3.select("#grid").append("g").attr("transform", `translate(0,${scaleSize})`).call(xAxis).selectAll("text").style("text-anchor", "start").attr("dy", 10).attr("dx",5).attr("transform", "rotate(90)");
-    d3.select("#grid").append("g").call(yAxis).selectAll("text").attr("dx",-5);
+    var xAxis = d3.svg.axis().scale(nameScaleX).orient("top").tickSize(0);    
+    var yAxis = d3.svg.axis().scale(nameScaleY).orient("left").tickSize(0);    
+    d3.select("#grid").append("g").attr("transform", `translate(0,${scaleSizeX})`).call(xAxis).selectAll("text").style("text-anchor", "start").attr("dy", 10).attr("dx",5).attr("transform", "rotate(90)");
+    d3.select("#grid").append("g").call(yAxis).selectAll("text").attr("dx",-3);
+
+    var hms = d3.time.format("%H:%M:%S");
+    d3.select("#time").html(hms(d3.max(teamdata, x=>x.time)));
 }
 
 
