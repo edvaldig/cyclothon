@@ -164,7 +164,8 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         return comma(d.distkm) + "km";
     })
         .attr("text-anchor", "middle")
-        .attr("dy", 3);
+        .attr("dy", 4);
+    ;
     rects.selectAll(".diag2")
         .data(grid.filter(function (d) { return d.x == d.y; }))
         .enter()
@@ -174,7 +175,7 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("y", function (d) { return (d.y + 0.5) * rectHeight; })
         .text(function (d) { return (comma(d.xdata.approx.distkmTotalFixed) + "km"); })
         .attr("text-anchor", "middle")
-        .attr("dy", -13)
+        .attr("dy", -12)
         .style("font-weight", "bold");
     rects.selectAll(".diag3")
         .data(grid.filter(function (d) { return d.x == d.y; }))
@@ -185,7 +186,7 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("y", function (d) { return (d.y + 0.5) * rectHeight; })
         .text(function (d) { return (comma(d.xdata.approx.distkmTotalFixed - d.xdata.approx.distkmTotalFixed / d.xdata.approx.pct) + "km"); })
         .attr("text-anchor", "middle")
-        .attr("dy", 17)
+        .attr("dy", 19)
         .style("font-weight", "bold")
         .style("opacity", 0.8);
     var scaleSizeX = teamdata.length * rectWidth;
@@ -202,13 +203,13 @@ function makeElevationMap(teamdata) {
         .range([0, 1810])
         .domain([0, 1]);
     var y = d3.scale.linear()
-        .range([0, 80])
+        .range([0, 60])
         .domain([0, d3.max(mapdata, function (d) { return d.elevation; })]);
     var color = d3.scale.category10();
     var line = d3.svg.line()
         .x(function (d) { return x(d.pct); })
-        .y(function (d) { return 100 - y(d.elevation); });
-    var lines = d3.select("#linegraph");
+        .y(function (d) { return 80 - y(d.elevation); });
+    var lines = d3.select("#linegraph").append("g").attr("transform", "translate(30,0) scale(0.96)");
     lines.call(tip);
     lines.append("path")
         .datum(mapdata.sort(function (a, b) { return a.pct - b.pct; }))
@@ -221,17 +222,13 @@ function makeElevationMap(teamdata) {
         .enter()
         .append("circle")
         .attr("cx", function (d) { return x(d.approx.pct); })
-        .attr("cy", function (d) { return 90 - y(d.approx.elevation); })
+        .attr("cy", function (d) { return 75 - y(d.approx.elevation); })
         .attr("r", 3)
         .style("fill", function (d) { return groupColor(d.category); })
         .on("mouseover", function (d) {
         tip.show(d);
     })
         .on("mouseout", tip.hide);
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left");
-    lines.call(yAxis);
     var legend = lines.append("g")
         .attr("transform", "translate(10,10)");
     legend.selectAll("text")
@@ -243,6 +240,10 @@ function makeElevationMap(teamdata) {
         .attr("y", 0)
         .style("fill", function (d) { return groupColor(d.key); });
     legend.append("g").append("text").text("Groups").style("font-weight", "bold");
+    var xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(0).tickFormat(d3.format("%")).ticks(20);
+    var yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0).ticks(5).tickFormat(function (x) { return 500 - x; });
+    lines.append("g").attr("transform", "translate(5,80)").call(xAxis).selectAll("text").style("font-size", "10px");
+    lines.append("g").attr("transform", "translate(0,20)").call(yAxis).selectAll("text").style("font-size", "10px");
 }
 function buildMap(error, map, teams) {
     mapdata = parseMapData(map);
