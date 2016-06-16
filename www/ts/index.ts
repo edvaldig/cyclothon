@@ -244,6 +244,8 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
     var yAxis = d3.svg.axis().scale(nameScaleY).orient("left").tickSize(0);    
     rects.append("g").attr("transform", `translate(0,${0})`).call(xAxis).selectAll("text").attr("class", "xlab").style("text-anchor", "end").attr("dy", -10).attr("dx",5).attr("transform", "rotate(45)");
     rects.append("g").call(yAxis).selectAll("text").attr("dx",-3).attr("class", "ylab");
+
+
 }
 
 function makeElevationMap(teamdata) {
@@ -296,12 +298,15 @@ function makeElevationMap(teamdata) {
         .attr("y",0)
         .style("fill", d=>groupColor(d.key));
     legend.append("g").append("text").text("Groups").style("font-weight","bold");
-
+    
+    lines.append("g").append("text").text("Finish").attr("x",1800).attr("y",100).style("font-weight","bold").style("color","#283593");
    
     var xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(0).tickFormat(d3.format("%")).ticks(20);    
-    var yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0).ticks(5).tickFormat(x=>500-x);    
-    lines.append("g").attr("transform", `translate(5,80)`).call(xAxis).selectAll("text").style("font-size","10px");
-    lines.append("g").attr("transform", "translate(0,20)").call(yAxis).selectAll("text").style("font-size","10px");    
+    var yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0).ticks(5).tickFormat(x=>`${500-x}m`);    
+    lines.append("g").attr("transform", `translate(5,80)`).call(xAxis).selectAll("text").style("font-size","10px").style("color","#283593");
+    lines.append("g").attr("transform", "translate(0,20)").call(yAxis).selectAll("text").style("font-size","8px").style("color","#283593");    
+
+    
 }
 
 

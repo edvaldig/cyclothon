@@ -165,7 +165,6 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
     })
         .attr("text-anchor", "middle")
         .attr("dy", 4);
-    ;
     rects.selectAll(".diag2")
         .data(grid.filter(function (d) { return d.x == d.y; }))
         .enter()
@@ -240,10 +239,11 @@ function makeElevationMap(teamdata) {
         .attr("y", 0)
         .style("fill", function (d) { return groupColor(d.key); });
     legend.append("g").append("text").text("Groups").style("font-weight", "bold");
+    lines.append("g").append("text").text("Finish").attr("x", 1800).attr("y", 100).style("font-weight", "bold").style("color", "#283593");
     var xAxis = d3.svg.axis().scale(x).orient("bottom").tickSize(0).tickFormat(d3.format("%")).ticks(20);
-    var yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0).ticks(5).tickFormat(function (x) { return 500 - x; });
-    lines.append("g").attr("transform", "translate(5,80)").call(xAxis).selectAll("text").style("font-size", "10px");
-    lines.append("g").attr("transform", "translate(0,20)").call(yAxis).selectAll("text").style("font-size", "10px");
+    var yAxis = d3.svg.axis().scale(y).orient("left").tickSize(0).ticks(5).tickFormat(function (x) { return ((500 - x) + "m"); });
+    lines.append("g").attr("transform", "translate(5,80)").call(xAxis).selectAll("text").style("font-size", "10px").style("color", "#283593");
+    lines.append("g").attr("transform", "translate(0,20)").call(yAxis).selectAll("text").style("font-size", "8px").style("color", "#283593");
 }
 function buildMap(error, map, teams) {
     mapdata = parseMapData(map);
