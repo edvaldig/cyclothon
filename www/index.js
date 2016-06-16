@@ -119,8 +119,8 @@ function buildMap(error, map, teams) {
     }
     var distMax = d3.max(grid.map(function (x) { return Math.abs(x.distkm); }));
     var scale = d3.scale.sqrt().range(["dodgerblue", "white"]).domain([0, distMax]);
-    var percent = d3.format("%");
-    var rectSize = 40;
+    var percent = d3.format("%"), comma = d3.format(".1f");
+    var rectSize = 50;
     var rects = d3.select("svg")
         .append("g")
         .attr("transform", "translate(200,0)")
@@ -133,7 +133,7 @@ function buildMap(error, map, teams) {
         .attr("height", rectSize)
         .attr("x", function (d) { return d.x * rectSize; })
         .attr("y", function (d) { return d.y * rectSize; })
-        .style("stroke", "black")
+        .style("stroke", "#202020")
         .style("stroke-width", "1px")
         .style("fill", function (d) {
         if (d.x == d.y)
@@ -141,7 +141,14 @@ function buildMap(error, map, teams) {
         return scale(d.distkm);
     })
         .on("mouseover", function (d, i) {
-        d3.select("#teamTitle").html(d.xdata.name + " vs " + d.ydata.name);
+        d3.select("#teamTitleA").html("" + d.xdata.name);
+        d3.select("#teamTitleB").html("" + d.ydata.name);
+        d3.select("#distanceA").html(Math.round(d.xdata.approx.distkmTotalFixed) + "km");
+        d3.select("#distanceB").html(Math.round(d.ydata.approx.distkmTotalFixed) + "km");
+        d3.select("#pctA").html("" + percent(d.xdata.approx.pct));
+        d3.select("#pctB").html("" + percent(d.ydata.approx.pct));
+        d3.select("#togoalA").html(Math.round(d.xdata.approx.distkmTotalFixed / d.xdata.approx.pct - d.xdata.approx.distkmTotalFixed) + "km");
+        d3.select("#togoalB").html(Math.round(d.ydata.approx.distkmTotalFixed / d.ydata.approx.pct - d.ydata.approx.distkmTotalFixed) + "km");
         rects.selectAll("rect").style("opacity", function (p) {
             return p.x == d.x || p.y == d.y ? 0.5 : 1;
         });
@@ -154,7 +161,7 @@ function buildMap(error, map, teams) {
         .attr("y", function (d) { return d.y * rectSize + rectSize * 0.5; })
         .text(function (d) {
         if (d.x < d.y)
-            return Math.round(d.distkm) + "km";
+            return comma(d.distkm) + "km";
         if (d.x == d.y)
             return "" + percent(d.xdata.approx.pct);
         return "";
