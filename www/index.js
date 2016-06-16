@@ -97,7 +97,7 @@ function approximatePosition(p, tree) {
     return interpolateMapPoints(n.prev, n, t);
     var _a;
 }
-function makeDistanceMatrix(teamdata) {
+function makeDistanceMatrix(teamdata, elementID, colors) {
     var grid = new Array();
     for (var x = 0; x < teamdata.length; x++) {
         var xdata = teamdata[x];
@@ -114,13 +114,12 @@ function makeDistanceMatrix(teamdata) {
         }
     }
     var distMax = d3.max(grid.map(function (x) { return Math.abs(x.distkm); }));
-    var scale = d3.scale.sqrt().range(["dodgerblue", "white"]).domain([0, distMax]);
+    var scale = d3.scale.sqrt().range(colors).domain([0, distMax]);
     var percent = d3.format("%"), comma = d3.format(".1f");
     var rectWidth = 65, rectHeight = 50;
-    var rects = d3.select("#main")
+    var rects = d3.select(elementID)
         .append("g")
-        .attr("transform", "translate(180,150)")
-        .attr("id", "grid");
+        .attr("transform", "translate(180,150)");
     rects.selectAll("rect")
         .data(grid)
         .enter()
@@ -137,17 +136,17 @@ function makeDistanceMatrix(teamdata) {
         return scale(Math.abs(d.distkm));
     })
         .on("mouseover", function (d, i) {
-        d3.selectAll(".xlab").style("font-weight", function (p) {
+        d3.selectAll(elementID + " .xlab").style("font-weight", function (p) {
             return p == d.xdata.name ? "bolder" : "normal";
         }).style("opacity", function (p) {
             return p == d.xdata.name ? 1 : 0.7;
         });
-        d3.selectAll(".ylab").style("font-weight", function (p) {
+        d3.selectAll(elementID + " .ylab").style("font-weight", function (p) {
             return p == d.ydata.name ? "bolder" : "normal";
         }).style("opacity", function (p) {
             return p == d.ydata.name ? 1 : 0.7;
         });
-        d3.selectAll("circle").transition().duration(500).attr("transform", function (p) {
+        d3.selectAll(elementID + " circle").transition().duration(500).attr("transform", function (p) {
             return "translate(0," + (p.name == d.xdata.name ? -10 : 0) + ")";
         }).attr("r", function (p) {
             return p.name == d.xdata.name ? 5 : 3;
@@ -183,8 +182,8 @@ function makeDistanceMatrix(teamdata) {
     var nameScaleY = d3.scale.ordinal().domain(teamdata.map(function (x) { return x.name; })).rangePoints([0, scaleSizeY], 1);
     var xAxis = d3.svg.axis().scale(nameScaleX).orient("top").tickSize(0);
     var yAxis = d3.svg.axis().scale(nameScaleY).orient("left").tickSize(0);
-    d3.select("#grid").append("g").attr("transform", "translate(0," + 0 + ")").call(xAxis).selectAll("text").attr("class", "xlab").style("text-anchor", "end").attr("dy", -10).attr("dx", 5).attr("transform", "rotate(45)");
-    d3.select("#grid").append("g").call(yAxis).selectAll("text").attr("dx", -3).attr("class", "ylab");
+    rects.append("g").attr("transform", "translate(0," + 0 + ")").call(xAxis).selectAll("text").attr("class", "xlab").style("text-anchor", "end").attr("dy", -10).attr("dx", 5).attr("transform", "rotate(45)");
+    rects.append("g").call(yAxis).selectAll("text").attr("dx", -3).attr("class", "ylab");
 }
 function makeElevationMap(teamdata) {
     var x = d3.scale.linear()
@@ -246,7 +245,9 @@ function buildMap(error, map, teams) {
     });
     teamdata = teamdata.sort(function (x, y) { return y.pct - x.pct; });
     groupColor = groupColor.domain(d3.nest().key(function (d) { return d.category; }).entries(teamdata));
-    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(0, 25));
+    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(0, 25), "#main", ["dodgerblue", "white"]);
+    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(25, 50), "#main2", ["#7e57c2", "white"]);
+    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(50, 75), "#main3", ["#ec407a", "white"]);
     makeElevationMap(teamdata);
     var hms = d3.time.format("%H:%M:%S");
     d3.select("#time").html(hms(d3.max(teamdata, function (x) { return x.time; })));
