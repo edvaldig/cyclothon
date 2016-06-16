@@ -28,17 +28,26 @@
      color: #2e7d32;
      font-weight: bold;
  }
+
+ div.container {
+     width:90%;
+     margin: 20px;
+ }
 </style>
 <body>
 <div class="container">
 <div class="row">
     <h3>WOW Cyclothon 2016</h3>
-    <p class="subtitle">Distance Matrix of Top <span class="highlight">15</span> Teams in <span class="highlight">Group B</span></p>
+    <p class="subtitle">Top <span class="highlight">15</span> Teams in <span class="highlight">Group B</span></p>
     <p class="guide">Manual refresh required, data is updated every 60 seconds, last update was on <span id="time" class="highlight"></span> </p>
+    <p class="subtitle">Elevation Map</p>        
+    <svg style="width:1600px;height:100px;" id="linegraph" />
 </div>
 <div class="row">
+    <br />
+    <p class="subtitle">Distance Matrix</p>
     <div class="col s12">
-        <svg style="width:1600px;height:800px;" id="main" />
+        <svg style="width:1600px;height:1200px;" id="main" />
     </div>
 </div>
 </div>
