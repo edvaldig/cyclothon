@@ -136,17 +136,17 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         return scale(Math.abs(d.distkm));
     })
         .on("mouseover", function (d, i) {
-        d3.selectAll(elementID + " .xlab").style("font-weight", function (p) {
+        d3.select(elementID).selectAll(".xlab").style("font-weight", function (p) {
             return p == d.xdata.name ? "bolder" : "normal";
         }).style("opacity", function (p) {
             return p == d.xdata.name ? 1 : 0.7;
         });
-        d3.selectAll(elementID + " .ylab").style("font-weight", function (p) {
+        d3.select(elementID).selectAll(".ylab").style("font-weight", function (p) {
             return p == d.ydata.name ? "bolder" : "normal";
         }).style("opacity", function (p) {
             return p == d.ydata.name ? 1 : 0.7;
         });
-        d3.selectAll(elementID + " circle").transition().duration(500).attr("transform", function (p) {
+        d3.selectAll("circle").transition().duration(500).attr("transform", function (p) {
             return "translate(0," + (p.name == d.xdata.name ? -10 : 0) + ")";
         }).attr("r", function (p) {
             return p.name == d.xdata.name ? 5 : 3;
@@ -174,8 +174,20 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("y", function (d) { return (d.y + 0.5) * rectHeight; })
         .text(function (d) { return (comma(d.xdata.approx.distkmTotalFixed) + "km"); })
         .attr("text-anchor", "middle")
-        .attr("dy", 13)
+        .attr("dy", -13)
         .style("font-weight", "bold");
+    rects.selectAll(".diag3")
+        .data(grid.filter(function (d) { return d.x == d.y; }))
+        .enter()
+        .append("text")
+        .attr("class", "diag3")
+        .attr("x", function (d) { return (d.x + 0.5) * rectWidth; })
+        .attr("y", function (d) { return (d.y + 0.5) * rectHeight; })
+        .text(function (d) { return (comma(d.xdata.approx.distkmTotalFixed - d.xdata.approx.distkmTotalFixed / d.xdata.approx.pct) + "km"); })
+        .attr("text-anchor", "middle")
+        .attr("dy", 17)
+        .style("font-weight", "bold")
+        .style("opacity", 0.8);
     var scaleSizeX = teamdata.length * rectWidth;
     var nameScaleX = d3.scale.ordinal().domain(teamdata.map(function (x) { return x.name; })).rangePoints([0, scaleSizeX], 1);
     var scaleSizeY = teamdata.length * rectHeight;

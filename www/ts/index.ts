@@ -57,7 +57,7 @@ function interpolateMapPoints(p1, p2, t) {
         debug:{p1,p2,t},
         distkmTotal:interpolateElement(p1, p2, x=>x.distkmTotal, t),
         distkmTotalFixed:interpolateElement(p1, p2, x=>x.distkmTotalFixed, t),
-        pct:interpolateElement(p1, p2, x=>x.pct, t), 
+        pct:interpolateElement(p1, p2, x=>x.pct, t),        
         elevation:interpolateElement(p1, p2, x=>x.elevation, t),
         longitude: interpolateElement(p1, p2, x=>x.longitude, t),
         latitude: interpolateElement(p1, p2, x=>x.latitude, t)    
@@ -175,19 +175,19 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
             return scale(Math.abs(d.distkm));
         })
         .on("mouseover", (d,i)=>{
-            d3.selectAll(`${elementID} .xlab`).style("font-weight", p=>{
+            d3.select(elementID).selectAll(`.xlab`).style("font-weight", p=>{
                 return p==d.xdata.name ? "bolder" : "normal";
             } ).style("opacity", p=> {
                return p==d.xdata.name ? 1 : 0.7; 
             });
 
-            d3.selectAll(`${elementID} .ylab`).style("font-weight", p=>{
+            d3.select(elementID).selectAll(`.ylab`).style("font-weight", p=>{
                 return p==d.ydata.name ? "bolder" : "normal";
             } ).style("opacity", p=> {
                return p==d.ydata.name ? 1 : 0.7; 
             });
 
-            d3.selectAll(`${elementID} circle`).transition().duration(500).attr("transform", p=>{
+            d3.selectAll("circle").transition().duration(500).attr("transform", p=>{
                 return `translate(0,${p.name == d.xdata.name ? -10 : 0})`;
             }).attr("r", p=>{
                 return p.name == d.xdata.name ? 5 : 3;
@@ -219,8 +219,21 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("y", d=>(d.y+0.5)*rectHeight)               
         .text(d=>`${comma(d.xdata.approx.distkmTotalFixed)}km`) 
         .attr("text-anchor", "middle")
-        .attr("dy",13)
+        .attr("dy",-13)
         .style("font-weight","bold");
+
+    rects.selectAll(".diag3")
+        .data(grid.filter(d=>d.x==d.y))
+        .enter()
+        .append("text")
+        .attr("class", "diag3")
+        .attr("x", d=>{return (d.x+0.5)*rectWidth; } )
+        .attr("y", d=>(d.y+0.5)*rectHeight)               
+        .text(d=>`${comma(d.xdata.approx.distkmTotalFixed - d.xdata.approx.distkmTotalFixed/d.xdata.approx.pct)}km`) 
+        .attr("text-anchor", "middle")
+        .attr("dy",17)
+        .style("font-weight","bold")
+        .style("opacity", 0.8);        
 
     var scaleSizeX = teamdata.length*rectWidth;
     var nameScaleX = d3.scale.ordinal().domain(teamdata.map(x=>x.name)).rangePoints([0,scaleSizeX],1);
