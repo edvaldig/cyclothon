@@ -150,6 +150,7 @@ function makeDistanceMatrix(teamdata) {
         .append("g")
         .attr("transform", "translate(180,150)")
         .attr("id", "grid");
+    var groupColor = d3.scale.category10();
 
     rects.selectAll("rect")
         .data(grid)
@@ -180,8 +181,10 @@ function makeDistanceMatrix(teamdata) {
                return p==d.ydata.name ? 1 : 0.7; 
             });
 
-            d3.selectAll("circle").style("fill", p=>{
-                return p.name == d.xdata.name ? "red" : "black";
+            d3.selectAll("circle").attr("r", p=>{
+                return p.name == d.xdata.name ? 5 : 3;
+            }).transition().duration(500).attr("transform", p=>{
+                return `translate(0,${p.name == d.xdata.name ? -10 : 0})`;
             });
         } );
 
@@ -222,33 +225,7 @@ function makeDistanceMatrix(teamdata) {
     d3.select("#grid").append("g").call(yAxis).selectAll("text").attr("dx",-3).attr("class", "ylab");
 }
 
-function buildMap(error, map, teams) {
-    mapdata = parseMapData(map);
-    teamdata = parseTeamData(teams);
-    
-    tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
-
-    markers.forEach(x=>{
-        x.approx = approximatePosition(x, tree);
-    });
-
-
-    teamdata.forEach(t=>{
-        t.approx = approximatePosition(t, tree);
-
-        t.pct = t.approx.pct;
-    });
-
-    teamdata = teamdata.filter(x=>x.categoryName == "Group B")
-                       .sort((x,y)=>y.pct-x.pct);
-
-    makeDistanceMatrix(teamdata.slice(0,20));
-
-    var hms = d3.time.format("%H:%M:%S");
-    d3.select("#time").html(hms(d3.max(teamdata, x=>x.time)));
-
-
-
+function makeElevationMap(teamdata) {
     var x = d3.scale.linear()
         .range([0, 1600])
         .domain([0, 1]);
@@ -257,6 +234,7 @@ function buildMap(error, map, teams) {
         .range([0, 80])
         .domain([0,d3.max(mapdata, d=>d.elevation)]);
 
+    var color = d3.scale.category10();
 
     var line = d3.svg.line()
         .x(function(d) { return x(d.pct); })
@@ -278,14 +256,56 @@ function buildMap(error, map, teams) {
         .attr("cx", d=>x(d.approx.pct))
         .attr("cy", d=>90-y(d.approx.elevation))
         .attr("r", 3)
-        .style("stroke", "black")
-        .style("stroke-width", "0px")
-        .style("fill", "black");
+        .style("fill", d=>color(d.category));
 
     var yAxis = d3.svg.axis()
         .scale(y)
         .orient("left");
     lines.call(yAxis);
+
+    var legend = lines.append("g")
+        .attr("transform", "translate(10,10)");
+
+    legend.selectAll("text")
+        .data(d3.nest().key(d=>d.category).entries(teamdata))
+        .enter()
+        .append("text")
+        .text(d=>d.key)
+        .attr("x", (d,i)=>60+i*20)
+        .attr("y",0)
+        .style("fill", d=>color(d.key));
+    legend.append("g").append("text").text("Groups").style("font-weight","bold");
+}
+
+
+function buildMap(error, map, teams) {
+    mapdata = parseMapData(map);
+    teamdata = parseTeamData(teams);
+    
+    tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
+
+    markers.forEach(x=>{
+        x.approx = approximatePosition(x, tree);
+    });
+
+
+    teamdata.forEach(t=>{
+        t.approx = approximatePosition(t, tree);
+
+        t.pct = t.approx.pct;
+    });
+
+    teamdata = teamdata.sort((x,y)=>y.pct-x.pct);
+
+    makeDistanceMatrix(teamdata.filter(x=>x.categoryName == "Group B").slice(0,20));
+    makeElevationMap(teamdata);
+
+    var hms = d3.time.format("%H:%M:%S");
+    d3.select("#time").html(hms(d3.max(teamdata, x=>x.time)));
+
+
+
+    
 }
 
 

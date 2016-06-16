@@ -114,6 +114,7 @@ function makeDistanceMatrix(teamdata) {
         .append("g")
         .attr("transform", "translate(180,150)")
         .attr("id", "grid");
+    var groupColor = d3.scale.category10();
     rects.selectAll("rect")
         .data(grid)
         .enter()
@@ -140,8 +141,10 @@ function makeDistanceMatrix(teamdata) {
         }).style("opacity", function (p) {
             return p == d.ydata.name ? 1 : 0.7;
         });
-        d3.selectAll("circle").style("fill", function (p) {
-            return p.name == d.xdata.name ? "red" : "black";
+        d3.selectAll("circle").attr("r", function (p) {
+            return p.name == d.xdata.name ? 5 : 3;
+        }).transition().duration(500).attr("transform", function (p) {
+            return "translate(0," + (p.name == d.xdata.name ? -10 : 0) + ")";
         });
     });
     rects.selectAll("text")
@@ -177,28 +180,14 @@ function makeDistanceMatrix(teamdata) {
     d3.select("#grid").append("g").attr("transform", "translate(0," + 0 + ")").call(xAxis).selectAll("text").attr("class", "xlab").style("text-anchor", "end").attr("dy", -10).attr("dx", 5).attr("transform", "rotate(45)");
     d3.select("#grid").append("g").call(yAxis).selectAll("text").attr("dx", -3).attr("class", "ylab");
 }
-function buildMap(error, map, teams) {
-    mapdata = parseMapData(map);
-    teamdata = parseTeamData(teams);
-    tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
-    markers.forEach(function (x) {
-        x.approx = approximatePosition(x, tree);
-    });
-    teamdata.forEach(function (t) {
-        t.approx = approximatePosition(t, tree);
-        t.pct = t.approx.pct;
-    });
-    teamdata = teamdata.filter(function (x) { return x.categoryName == "Group B"; })
-        .sort(function (x, y) { return y.pct - x.pct; });
-    makeDistanceMatrix(teamdata.slice(0, 20));
-    var hms = d3.time.format("%H:%M:%S");
-    d3.select("#time").html(hms(d3.max(teamdata, function (x) { return x.time; })));
+function makeElevationMap(teamdata) {
     var x = d3.scale.linear()
         .range([0, 1600])
         .domain([0, 1]);
     var y = d3.scale.linear()
         .range([0, 80])
         .domain([0, d3.max(mapdata, function (d) { return d.elevation; })]);
+    var color = d3.scale.category10();
     var line = d3.svg.line()
         .x(function (d) { return x(d.pct); })
         .y(function (d) { return 100 - y(d.elevation); });
@@ -216,13 +205,39 @@ function buildMap(error, map, teams) {
         .attr("cx", function (d) { return x(d.approx.pct); })
         .attr("cy", function (d) { return 90 - y(d.approx.elevation); })
         .attr("r", 3)
-        .style("stroke", "black")
-        .style("stroke-width", "0px")
-        .style("fill", "black");
+        .style("fill", function (d) { return color(d.category); });
     var yAxis = d3.svg.axis()
         .scale(y)
         .orient("left");
     lines.call(yAxis);
+    var legend = lines.append("g")
+        .attr("transform", "translate(10,10)");
+    legend.selectAll("text")
+        .data(d3.nest().key(function (d) { return d.category; }).entries(teamdata))
+        .enter()
+        .append("text")
+        .text(function (d) { return d.key; })
+        .attr("x", function (d, i) { return 60 + i * 20; })
+        .attr("y", 0)
+        .style("fill", function (d) { return color(d.key); });
+    legend.append("g").append("text").text("Groups").style("font-weight", "bold");
+}
+function buildMap(error, map, teams) {
+    mapdata = parseMapData(map);
+    teamdata = parseTeamData(teams);
+    tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
+    markers.forEach(function (x) {
+        x.approx = approximatePosition(x, tree);
+    });
+    teamdata.forEach(function (t) {
+        t.approx = approximatePosition(t, tree);
+        t.pct = t.approx.pct;
+    });
+    teamdata = teamdata.sort(function (x, y) { return y.pct - x.pct; });
+    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(0, 20));
+    makeElevationMap(teamdata);
+    var hms = d3.time.format("%H:%M:%S");
+    d3.select("#time").html(hms(d3.max(teamdata, function (x) { return x.time; })));
 }
 queue()
     .defer(d3.csv, "map.csv")
