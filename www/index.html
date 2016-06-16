@@ -4,7 +4,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
 <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
-
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
 <style>
  body {
      font-family: 'Montserrat', sans-serif;
@@ -38,24 +40,23 @@
 <div class="container">
 <div class="row">
     <h3>WOW Cyclothon 2016</h3>
-    <p class="subtitle">Top <span class="highlight">20</span> Teams in <span class="highlight">Group B</span></p>
+    <p class="subtitle">Top <span class="highlight">25</span> Teams in <span class="highlight">Group B</span></p>
     <p class="guide">Manual refresh required, data is updated every 60 seconds, last update was on <span id="time" class="highlight"></span> </p>
     <p class="subtitle">Elevation Map</p>        
-    <svg style="width:1600px;height:100px;" id="linegraph" />
+    <svg style="width:1810px;height:100px;" id="linegraph" />
 </div>
 <div class="row">
     <br />
     <p class="subtitle">Distance Matrix</p>
     <div class="col s12">
-        <svg style="width:1600px;height:1200px;" id="main" />
+        <svg style="width:1810px;height:1600px;" id="main" />
     </div>
 </div>
 </div>
 
 
 
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://d3js.org/queue.v1.min.js"></script>
+
 <script src="kdTree.js"></script>
 <script src="index.js"></script> 
 

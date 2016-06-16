@@ -8,6 +8,13 @@ var markers = [
     { name: "Akureyri", latitude: 65.700359, longitude: -18.141921, approx: null }
 ];
 var dformat = d3.time.format("%d.%m.%Y %H:%M:%S");
+var groupColor = d3.scale.category10();
+var tip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function (d) {
+    return "<span style=\"color:" + groupColor(d.category) + "\">" + d.name + "</span>";
+});
 function latlonToPoint(p) {
     var rad = Math.PI / 180;
     var latr = p.latitude * rad;
@@ -114,7 +121,6 @@ function makeDistanceMatrix(teamdata) {
         .append("g")
         .attr("transform", "translate(180,150)")
         .attr("id", "grid");
-    var groupColor = d3.scale.category10();
     rects.selectAll("rect")
         .data(grid)
         .enter()
@@ -141,10 +147,10 @@ function makeDistanceMatrix(teamdata) {
         }).style("opacity", function (p) {
             return p == d.ydata.name ? 1 : 0.7;
         });
-        d3.selectAll("circle").attr("r", function (p) {
-            return p.name == d.xdata.name ? 5 : 3;
-        }).transition().duration(500).attr("transform", function (p) {
+        d3.selectAll("circle").transition().duration(500).attr("transform", function (p) {
             return "translate(0," + (p.name == d.xdata.name ? -10 : 0) + ")";
+        }).attr("r", function (p) {
+            return p.name == d.xdata.name ? 5 : 3;
         });
     });
     rects.selectAll("text")
@@ -182,7 +188,7 @@ function makeDistanceMatrix(teamdata) {
 }
 function makeElevationMap(teamdata) {
     var x = d3.scale.linear()
-        .range([0, 1600])
+        .range([0, 1810])
         .domain([0, 1]);
     var y = d3.scale.linear()
         .range([0, 80])
@@ -192,6 +198,7 @@ function makeElevationMap(teamdata) {
         .x(function (d) { return x(d.pct); })
         .y(function (d) { return 100 - y(d.elevation); });
     var lines = d3.select("#linegraph");
+    lines.call(tip);
     lines.append("path")
         .datum(mapdata.sort(function (a, b) { return a.pct - b.pct; }))
         .attr("d", line)
@@ -205,7 +212,11 @@ function makeElevationMap(teamdata) {
         .attr("cx", function (d) { return x(d.approx.pct); })
         .attr("cy", function (d) { return 90 - y(d.approx.elevation); })
         .attr("r", 3)
-        .style("fill", function (d) { return color(d.category); });
+        .style("fill", function (d) { return groupColor(d.category); })
+        .on("mouseover", function (d) {
+        tip.show(d);
+    })
+        .on("mouseout", tip.hide);
     var yAxis = d3.svg.axis()
         .scale(y)
         .orient("left");
@@ -219,7 +230,7 @@ function makeElevationMap(teamdata) {
         .text(function (d) { return d.key; })
         .attr("x", function (d, i) { return 60 + i * 20; })
         .attr("y", 0)
-        .style("fill", function (d) { return color(d.key); });
+        .style("fill", function (d) { return groupColor(d.key); });
     legend.append("g").append("text").text("Groups").style("font-weight", "bold");
 }
 function buildMap(error, map, teams) {
@@ -234,7 +245,8 @@ function buildMap(error, map, teams) {
         t.pct = t.approx.pct;
     });
     teamdata = teamdata.sort(function (x, y) { return y.pct - x.pct; });
-    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(0, 20));
+    groupColor = groupColor.domain(d3.nest().key(function (d) { return d.category; }).entries(teamdata));
+    makeDistanceMatrix(teamdata.filter(function (x) { return x.categoryName == "Group B"; }).slice(0, 25));
     makeElevationMap(teamdata);
     var hms = d3.time.format("%H:%M:%S");
     d3.select("#time").html(hms(d3.max(teamdata, function (x) { return x.time; })));

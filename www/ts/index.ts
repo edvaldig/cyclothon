@@ -15,7 +15,15 @@ declare var queue : any;
 declare var kdTree : any;
 
 var dformat = d3.time.format("%d.%m.%Y %H:%M:%S");
+var groupColor = d3.scale.category10();
 
+
+var tip = d3.tip()
+  .attr('class', 'd3-tip')
+  .offset([-10, 0])
+  .html(function(d) {
+    return `<span style="color:${groupColor(d.category)}">${d.name}</span>` ;
+  });
 
 function latlonToPoint(p) {
     var rad = Math.PI/180;
@@ -150,7 +158,6 @@ function makeDistanceMatrix(teamdata) {
         .append("g")
         .attr("transform", "translate(180,150)")
         .attr("id", "grid");
-    var groupColor = d3.scale.category10();
 
     rects.selectAll("rect")
         .data(grid)
@@ -181,11 +188,13 @@ function makeDistanceMatrix(teamdata) {
                return p==d.ydata.name ? 1 : 0.7; 
             });
 
-            d3.selectAll("circle").attr("r", p=>{
-                return p.name == d.xdata.name ? 5 : 3;
-            }).transition().duration(500).attr("transform", p=>{
+            d3.selectAll("circle").transition().duration(500).attr("transform", p=>{
                 return `translate(0,${p.name == d.xdata.name ? -10 : 0})`;
+            }).attr("r", p=>{
+                return p.name == d.xdata.name ? 5 : 3;
             });
+
+            
         } );
 
     rects.selectAll("text")
@@ -227,7 +236,7 @@ function makeDistanceMatrix(teamdata) {
 
 function makeElevationMap(teamdata) {
     var x = d3.scale.linear()
-        .range([0, 1600])
+        .range([0, 1810])
         .domain([0, 1]);
 
     var y = d3.scale.linear()
@@ -241,7 +250,7 @@ function makeElevationMap(teamdata) {
         .y(function(d) { return 100-y(d.elevation); });
 
     var lines = d3.select("#linegraph")
-    
+    lines.call(tip);
     lines.append("path")
         .datum(mapdata.sort((a,b)=>a.pct-b.pct))
         .attr("d", line)
@@ -256,7 +265,11 @@ function makeElevationMap(teamdata) {
         .attr("cx", d=>x(d.approx.pct))
         .attr("cy", d=>90-y(d.approx.elevation))
         .attr("r", 3)
-        .style("fill", d=>color(d.category));
+        .style("fill", d=>groupColor(d.category))
+        .on("mouseover", d =>{
+            tip.show(d);
+        } )
+        .on("mouseout", tip.hide);
 
     var yAxis = d3.svg.axis()
         .scale(y)
@@ -273,7 +286,7 @@ function makeElevationMap(teamdata) {
         .text(d=>d.key)
         .attr("x", (d,i)=>60+i*20)
         .attr("y",0)
-        .style("fill", d=>color(d.key));
+        .style("fill", d=>groupColor(d.key));
     legend.append("g").append("text").text("Groups").style("font-weight","bold");
 }
 
@@ -296,8 +309,9 @@ function buildMap(error, map, teams) {
     });
 
     teamdata = teamdata.sort((x,y)=>y.pct-x.pct);
+    groupColor = groupColor.domain(d3.nest().key(d=>d.category).entries(teamdata));
 
-    makeDistanceMatrix(teamdata.filter(x=>x.categoryName == "Group B").slice(0,20));
+    makeDistanceMatrix(teamdata.filter(x=>x.categoryName == "Group B").slice(0,25));
     makeElevationMap(teamdata);
 
     var hms = d3.time.format("%H:%M:%S");
