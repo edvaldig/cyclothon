@@ -2,6 +2,14 @@ from lxml import html
 import requests
 import json
 
+namefixes = {
+    "CCP & ZWIFT":"CCP og ZWIFT"
+}
+def fixname(name):
+    if name in namefixes:
+        return namefixes[name]
+    return name
+
 page = requests.get("http://www.timataka.net/wowcyclothon2016/urslit/?race=4")
 tree = html.fromstring(page.content)
 rows = tree.xpath('//table/tbody/tr')

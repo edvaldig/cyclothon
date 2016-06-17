@@ -296,17 +296,18 @@ function buildMap(error, map, teams, finals) {
     groupb = groupb.sort(function (x, y) {
         if (x.finals != null) {
             if (y.finals != null)
-                return x.finals < y.finals ? -1 : 1;
+                return x.finals.place - y.finals.place;
             return -1;
         }
         if (y.finals != null) {
             return 1;
         }
-        return y.pct - x.pct;
+        return 100 * (y.pct - x.pct);
     });
     makeDistanceMatrix(groupb.slice(0, 25), "#main", ["dodgerblue", "white"]);
     makeDistanceMatrix(groupb.slice(25, 50), "#main2", ["#7e57c2", "white"]);
     makeDistanceMatrix(groupb.slice(50, 75), "#main3", ["#ec407a", "white"]);
+    makeDistanceMatrix(groupb.slice(75, 100), "#main4", ["#ff5722", "white"]);
     makeElevationMap(teamdata);
     var hms = d3.time.format("%H:%M:%S");
     d3.select("#time").html(hms(d3.max(teamdata, function (x) { return x.time; })));
