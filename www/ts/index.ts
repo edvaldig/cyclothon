@@ -4,7 +4,7 @@
 var mapdata = null;
 var tree = null;
 var teamdata = null;
-
+var groupb = null;
 var EARTH_RADIUS = 6371.0e3;
 
 var markers = [
@@ -105,7 +105,8 @@ function parseTeamData(teams) {
             z:cart.z,
             nosignal:t.NoSignal, 
             time:dformat.parse(t.LastTime),
-            speed:parseFloat(t.Speed.replace(',', '.')) };
+            speed:parseFloat(t.Speed.replace(',', '.')),
+            finals:null };
     });
 }
 
@@ -174,6 +175,9 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
             
             return scale(Math.abs(d.distkm));
         })
+        .style("opacity", d=>{
+            return (d.xdata.finals != null | d.ydata.finals != null) ? 0.2 : 1; 
+        })
         .on("mouseover", (d,i)=>{
             d3.select(elementID).selectAll(`.xlab`).style("font-weight", p=>{
                 return p==d.xdata.name ? "bolder" : "normal";
@@ -203,9 +207,17 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("x", d=>{return (d.x+0.5)*rectWidth; } )
         .attr("y", d=>(d.y+0.5)*rectHeight)        
         .text(d=>{
-          if(d.x == d.y)
-            return `${percent(d.xdata.approx.pct)}`;
-          return `${comma(d.distkm)}km`;
+          if(d.x == d.y) 
+          {
+              if(d.xdata.finals == null) return `${percent(d.xdata.approx.pct)}`;
+              return d.xdata.finals.time;
+          }
+            
+          return `${comma(d.distkmFixed)}km`;
+        })
+        .style("opacity", d=>{
+            if(d.x == d.y) return 1;
+            return (d.xdata.finals != null | d.ydata.finals != null) ? 0.2 : 1; 
         })
         .attr("text-anchor", "middle")
         .attr("dy",4);
@@ -217,7 +229,13 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("class", "diag2")
         .attr("x", d=>{return (d.x+0.5)*rectWidth; } )
         .attr("y", d=>(d.y+0.5)*rectHeight)               
-        .text(d=>`${comma(d.xdata.approx.distkmTotalFixed)}km`) 
+        .text(d=>{
+            if(d.xdata.finals != null) {
+                return d.xdata.finals.place;
+            }
+                
+            return `${comma(d.xdata.approx.distkmTotalFixed)}km`;
+        }) 
         .attr("text-anchor", "middle")
         .attr("dy",-12)
         .style("font-weight","bold");
@@ -229,7 +247,13 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
         .attr("class", "diag3")
         .attr("x", d=>{return (d.x+0.5)*rectWidth; } )
         .attr("y", d=>(d.y+0.5)*rectHeight)               
-        .text(d=>`${comma(d.xdata.approx.distkmTotalFixed - d.xdata.approx.distkmTotalFixed/d.xdata.approx.pct)}km`) 
+        .text(d=> {
+            if(d.xdata.finals != null) {
+                return "";
+            }
+               
+            return `${comma(d.xdata.approx.distkmTotalFixed - d.xdata.approx.distkmTotalFixed/d.xdata.approx.pct)}km`
+        }) 
         .attr("text-anchor", "middle")
         .attr("dy",19)
         .style("font-weight","bold")
@@ -310,11 +334,12 @@ function makeElevationMap(teamdata) {
 }
 
 
-function buildMap(error, map, teams) {
+function buildMap(error, map, teams, finals) {
     mapdata = parseMapData(map);
     teamdata = parseTeamData(teams);
     
     tree = new kdTree(mapdata, distance, ["x", "y", "z"]);
+    finals.forEach(f=>f.place = parseInt(f.place));
 
     markers.forEach(x=>{
         x.approx = approximatePosition(x, tree);
@@ -327,12 +352,38 @@ function buildMap(error, map, teams) {
         t.pct = t.approx.pct;
     });
 
-    teamdata = teamdata.sort((x,y)=>y.pct-x.pct);
-    groupColor = groupColor.domain(d3.nest().key(d=>d.category).entries(teamdata));
 
-    makeDistanceMatrix(teamdata.filter(x=>x.categoryName == "Group B").slice(0,25), "#main", ["dodgerblue","white"]);
-    makeDistanceMatrix(teamdata.filter(x=>x.categoryName == "Group B").slice(25,50), "#main2", ["#7e57c2","white"]);
-    makeDistanceMatrix(teamdata.filter(x=>x.categoryName == "Group B").slice(50,75), "#main3", ["#ec407a","white"]);
+    groupColor = groupColor.domain(d3.nest().key(d=>d.category).entries(teamdata));
+    console.log(finals)
+    groupb = teamdata.filter(x=>x.categoryName == "Group B");
+    finals.forEach(f=>{
+        groupb.forEach(t=>{
+            if(f.name == t.name) {
+                t.finals = f;
+                t.pct = 1;
+                t.approx.distkmTotal = 1358;
+                t.approx.distkmTotalFixed=1358;
+            }
+        })
+    });
+    groupb = groupb.sort((x,y)=>{
+        if(x.finals != null) 
+        {
+            if(y.finals != null)    
+                return x.finals < y.finals ? -1 : 1;
+            return -1;            
+        }
+        if(y.finals != null) 
+        {
+            return 1;            
+        }
+
+        return y.pct-x.pct;
+    });
+
+    makeDistanceMatrix(groupb.slice(0,25), "#main", ["dodgerblue","white"]);
+    makeDistanceMatrix(groupb.slice(25,50), "#main2", ["#7e57c2","white"]);
+    makeDistanceMatrix(groupb.slice(50,75), "#main3", ["#ec407a","white"]);
     makeElevationMap(teamdata);
 
     var hms = d3.time.format("%H:%M:%S");
@@ -348,6 +399,7 @@ function buildMap(error, map, teams) {
 queue()
 	.defer(d3.csv, "map.csv")
     .defer(d3.json, "testdata.json")
+    .defer(d3.json, "finals.json")
     //.defer(d3.json, "https://live.at.is/Home/GetTeamListUpdate")
 	.await(buildMap);
 
