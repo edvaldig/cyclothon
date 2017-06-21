@@ -6,6 +6,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+cymysql://cyclothon:1qazxsw2@cycl
 
 db = SQLAlchemy(app)
 
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    time = db.Column(db.DateTime, index = True)
+    message = db.Column(db.String(200))
+    has_error = db.Column(db.Boolean())
+    teams_added = db.Column(db.Integer())
+    categories_added = db.Column(db.Integer())
+    records_added = db.Column(db.Integer())
 
 
 class Category(db.Model):
@@ -33,5 +41,7 @@ class Record(db.Model):
 def create_database():
     db.create_all()
 
+def drop_database():
+    db.drop_all()
 
 
