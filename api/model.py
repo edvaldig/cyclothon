@@ -14,7 +14,7 @@ class Log(db.Model):
     teams_added = db.Column(db.Integer())
     categories_added = db.Column(db.Integer())
     records_added = db.Column(db.Integer())
-
+    json_raw = db.Column(db.JSON())
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)

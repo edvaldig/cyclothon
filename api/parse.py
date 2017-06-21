@@ -47,14 +47,14 @@ def get_test_data():
 def get_data():
     url = "http://live.at.is/Home/GetTeamListUpdate"
     with requests.get(url) as r:
-        return json.loads(r.text)
+        return (r.text, json.loads(r.text))
 
 
-def parse_data(data):
+def parse_data(json_raw, data):
     dbcategories = {g.name:g for g in model.Category.query.all()}
     dbteams = {t.name:t for t in model.Team.query.all()}
 
-    log = model.Log(time = datetime.now(), categories_added = 0, teams_added = 0, records_added = 0, has_error = False, message = "OK")
+    log = model.Log(json_raw = json_raw, time = datetime.now(), categories_added = 0, teams_added = 0, records_added = 0, has_error = False, message = "OK")
     try:
         for d in data:
             category = Category(d)
@@ -101,12 +101,13 @@ def parse_data(data):
     except Exception as e:
         log.message = str(e) if len(log.message) == 0 else ",".join([log.message, str(e)])
         log.has_error = True
-
-    db.session.add(log)
-    db.session.commit()
+        print(e)
+    finally:
+        db.session.add(log)
+        db.session.commit()
 
 if __name__ == '__main__':
-    parse_data(get_data())
+    parse_data(*get_data())
 
 
 
