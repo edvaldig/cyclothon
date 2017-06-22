@@ -3,13 +3,19 @@
 <script src="https://code.jquery.com/jquery-1.12.4.min.js"   integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="   crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/js/materialize.min.js"></script>
-<link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+<link href='css/normalize.css' rel='stylesheet' type='text/css'>
+<link href='css/ion.rangeSlider.css' rel='stylesheet' type='text/css'>
+<link href='css/ion.rangeSlider.skinNice.css' rel='stylesheet' type='text/css'>
+<link href='css/selectize.default.css' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/queue.v1.min.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script src="js/selectize.js"></script>
+<script src="js/ion.rangeSlider.min.js"></script>
 <style>
  body {
-     font-family: 'Montserrat', sans-serif;
+     font-family: 'Roboto Condensed', sans-serif;
      background: #e1f5fe;
  }
  h3 { color: #1a237e;}
@@ -68,39 +74,21 @@
 <body>
 <div class="container">
 <div class="row">
-    <h3>WOW Cyclothon 2016</h3>
+    <h3>WOW Cyclothon 2017</h3>
     <p class="guide">Manual refresh required, data is updated every 60 seconds, last update was on <span id="time" class="highlight"></span> </p>
     <p class="subtitle">Elevation Map</p>        
-    <svg style="width:1810px;height:100px;" id="linegraph" />
+    <svg style="width:1600px;height:100px;" id="linegraph" />
+</div>
+<div class="row" style="width:900px">
+    <input type="text" id="example_id" name="example_name" value="" />
 </div>
 <div class="row">
-    <br />
     <p class="subtitle">Distance Matrix of Top <span class="highlight">25</span> Teams in <span class="highlight">Group B</span></p>
     <div class="col s12">
         <svg style="width:1810px;height:1400px;" id="main" />
     </div>
 </div>
-<div class="row">
-    <br />
-    <p class="subtitle">Teams <span class="highlight">25 - 50</span> in <span class="highlight">Group B</span></p>
-    <div class="col s12">
-        <svg style="width:1810px;height:1400px;" id="main2" />
-    </div>
-</div>
-<div class="row">
-    <br />
-    <p class="subtitle">Teams <span class="highlight">50 - 75</span> in <span class="highlight">Group B</span></p>
-    <div class="col s12">
-        <svg style="width:1810px;height:1400px;" id="main3" />
-    </div>
-</div>
-<div class="row">
-    <br />
-    <p class="subtitle">Teams <span class="highlight">75 - 100</span> in <span class="highlight">Group B</span></p>
-    <div class="col s12">
-        <svg style="width:1810px;height:1400px;" id="main4" />
-    </div>
-</div>
+
 </div>
 
 

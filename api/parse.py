@@ -46,8 +46,8 @@ def get_test_data():
 
 def get_data():
     url = "http://live.at.is/Home/GetTeamListUpdate"
-    with requests.get(url) as r:
-        return (r.text, json.loads(r.text))
+    r = requests.get(url)
+    return (r.text, json.loads(r.text))
 
 
 def parse_data(json_raw, data):

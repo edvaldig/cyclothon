@@ -1,4 +1,4 @@
-/// <reference path="../typings/globals/d3/index.d.ts" />
+/// <reference path="typings/globals/d3/index.d.ts" />
 //import "./types.ts";
 var mapdata = null;
 var tree = null;
@@ -99,7 +99,7 @@ function approximatePosition(p, tree) {
     return interpolateMapPoints(n.prev, n, t);
     var _a;
 }
-function makeDistanceMatrix(teamdata, elementID, colors) {
+function makeDistanceMatrix(teamdata) {
     var grid = new Array();
     for (var x = 0; x < teamdata.length; x++) {
         var xdata = teamdata[x];
@@ -115,6 +115,11 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
             });
         }
     }
+    return grid;
+}
+
+function renderDistanceMatrix2(teamdata, elementID, colors) {
+    var grid = makeDistanceMatrix(teamdata);
     var distMax = d3.max(grid.map(function (x) { return Math.abs(x.distkm); }));
     var scale = d3.scale.sqrt().range(colors).domain([0, distMax]);
     var percent = d3.format("%"), comma = d3.format(".1f");
@@ -220,9 +225,31 @@ function makeDistanceMatrix(teamdata, elementID, colors) {
     rects.append("g").attr("transform", "translate(0," + 0 + ")").call(xAxis).selectAll("text").attr("class", "xlab").style("text-anchor", "end").attr("dy", -10).attr("dx", 5).attr("transform", "rotate(45)");
     rects.append("g").call(yAxis).selectAll("text").attr("dx", -3).attr("class", "ylab");
 }
+
+function renderDistanceMatrix(teamdata, elementID, colors) {
+    var grid = makeDistanceMatrix(teamdata);
+    var distMax = d3.max(grid.map(function (x) { return Math.abs(x.distkm); }));
+    var scale = d3.scale.sqrt().range(colors).domain([0, distMax]);
+    var percent = d3.format("%"), comma = d3.format(".1f");
+    var rectWidth = 65, rectHeight = 50;
+
+    var main = d3.select(elementID)
+        .selectAll("g")
+        .data([grid]);
+
+    var mainEnter = main.enter().append("g").attr("id","mainRects");
+
+    var cells = mainEnter.select("#mainRects").selectAll(".rect").data(grid);
+    
+    cells.enter().append("rect").attr("class",".rect");
+    cells.exit().remove();
+
+    
+}
+
 function makeElevationMap(teamdata) {
     var x = d3.scale.linear()
-        .range([0, 1810])
+        .range([0, 1610])
         .domain([0, 1]);
     var y = d3.scale.linear()
         .range([0, 60])
@@ -304,13 +331,21 @@ function buildMap(error, map, teams, finals) {
         }
         return 100 * (y.pct - x.pct);
     });
-    makeDistanceMatrix(groupb.slice(0, 25), "#main", ["dodgerblue", "white"]);
-    makeDistanceMatrix(groupb.slice(25, 50), "#main2", ["#7e57c2", "white"]);
-    makeDistanceMatrix(groupb.slice(50, 75), "#main3", ["#ec407a", "white"]);
-    makeDistanceMatrix(groupb.slice(75, 100), "#main4", ["#ff5722", "white"]);
+    renderDistanceMatrix(groupb.slice(0, 25), "#main", ["dodgerblue", "white"]);
     makeElevationMap(teamdata);
     var hms = d3.time.format("%H:%M:%S");
     d3.select("#time").html(hms(d3.max(teamdata, function (x) { return x.time; })));
+    $("#example_id").ionRangeSlider({
+        type: "double",
+        min: 0,
+        max: 100,
+        from: 30,
+        to: 70,
+        drag_interval: true,
+        onFinish: function (data) {
+            renderDistanceMatrix(groupb.slice(data.from, data.to), "#main", ["dodgerblue", "white"]);
+        }
+    });
 }
 queue()
     .defer(d3.csv, "map.csv")
